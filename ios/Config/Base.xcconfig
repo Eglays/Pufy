@@ -1,0 +1,3 @@
+// Pufy temel yapılandırması / base configuration
+// İmzalama için Local.xcconfig.example dosyasını Local.xcconfig olarak kopyala.
+#include? "Local.xcconfig"

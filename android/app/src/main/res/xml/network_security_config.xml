@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Kendi yapay zeka sunucusuna (yerel ağ / IP) http ile de bağlanabilmek için — iOS'taki ATS istisnasının karşılığı -->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="true" />
+</network-security-config>

@@ -1,0 +1,155 @@
+name: PufyAgent
+options:
+  bundleIdPrefix: com.pufy
+  deploymentTarget:
+    iOS: "16.2"
+  developmentLanguage: tr
+  knownRegions:
+    - tr
+    - en
+    - Base
+settings:
+  base:
+    MARKETING_VERSION: "1.1"
+    CURRENT_PROJECT_VERSION: "47"
+targets:
+  PufyAgent:
+    type: application
+    platform: iOS
+    configFiles:
+      Debug: Config/Base.xcconfig
+      Release: Config/Base.xcconfig
+    sources:
+      - AppLanguage.swift
+      - LegalLinks.swift
+      - AIReport.swift
+      - SafariView.swift
+      - Localizable.xcstrings
+      - InfoPlist.xcstrings
+      - PufyTheme.swift
+      - AIConfig.swift
+      - ChatStore.swift
+      - MarkdownView.swift
+      - Models.swift
+      - MiniZip.swift
+      - FileTextExtractor.swift
+      - GeminiService.swift
+      - DeepResearchModels.swift
+      - DeepResearchManager.swift
+      - WeatherService.swift
+      - SearXNGService.swift
+      - JinaReaderService.swift
+      - PhotoManager.swift
+      - Reminder.swift
+      - VoiceManager.swift
+      - Dictation.swift
+      - MemoryStore.swift
+      - MemoryBookView.swift
+      - CustomCameraView.swift
+      - MicroAnimations.swift
+      - ChatViewModel.swift
+      - ChatView.swift
+      - RichChatViews.swift
+      - ChatWidgets.swift
+      - InteractiveCards.swift
+      - ChatCanvas.swift
+      - PufyUIKit.swift
+      - MacCatalystShims.swift
+      - OnboardingView.swift
+      - CoachMarksView.swift
+      - HistoryView.swift
+      - SettingsView.swift
+      - HowToUseView.swift
+      - ContentView.swift
+      - PufyAgentApp.swift
+      - AppTab.swift
+      - MiniAppView.swift
+      - MiniAppRuntime.swift
+      - MiniAppBackground.swift
+      - AppAgent.swift
+      - AppBuilder.swift
+      - AppCreatorView.swift
+      - TabSwitcherView.swift
+      - PufyLiveActivityAttributes.swift
+      - LiveActivityCenter.swift
+      - ScheduledTasks.swift
+      - LiveScores.swift
+      - QueryRouter.swift
+      - NoteStore.swift
+      - NoteViews.swift
+      - TaskSessionView.swift
+      - NativeWebView.swift
+      - SyncService.swift
+      - ObjC/PufyObjC.h
+      - ObjC/PufyObjC.m
+      - Assets.xcassets
+      # Liquid Glass ikonu (Icon Composer) — iOS 26+ bunu kullanır, eskiler AppIcon PNG'sini
+      - path: Ikon/Pufy.icon
+        type: file
+    dependencies:
+      - sdk: Speech.framework
+      - sdk: AVFoundation.framework
+      - sdk: WebKit.framework
+      - target: PufyWidget
+        platformFilter: iOS
+    settings:
+      # Mac: gerçek Mac uygulaması (Catalyst) — pencere boyutlanır, tam ekran kırpılmaz; görünüm iPad'deki gibi kalır
+      SUPPORTS_MACCATALYST: YES
+      # Mac'te kendi yalıtılmış alanında çalışsın (ortak klasörlere yazmasın; Keychain ve ayarlar Mac'e özel)
+      "CODE_SIGN_ENTITLEMENTS[sdk=macosx*]": PufyAgent-Mac.entitlements
+      SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD: NO
+      DERIVE_MACCATALYST_PRODUCT_BUNDLE_IDENTIFIER: NO
+      GENERATE_INFOPLIST_FILE: YES
+      # ATS istisnaları (kendi sunucuna http + IP ile bağlanabilmek için) — açıklama dosyanın içinde
+      INFOPLIST_FILE: PufyAgent-Info.plist
+      INFOPLIST_KEY_UILaunchScreen_Generation: YES
+      INFOPLIST_KEY_UILaunchScreen_UIColorName: LaunchBackground
+      INFOPLIST_KEY_UILaunchScreen_UIImageName: chat_pp
+      INFOPLIST_KEY_CFBundleDisplayName: "Pufy"
+      INFOPLIST_KEY_NSCameraUsageDescription: "Görsel analizi yapabilmek için kameranıza erişim gerekiyor."
+      INFOPLIST_KEY_NSPhotoLibraryUsageDescription: "Görsel seçebilmek için fotoğraf arşivinize erişim gerekiyor."
+      INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription: "Üretilen görselleri Fotoğraflar'a kaydedebilmek için gerekiyor."
+      INFOPLIST_KEY_UIStatusBarStyle: UIStatusBarStyleDarkContent
+      INFOPLIST_KEY_UIViewControllerBasedStatusBarAppearance: NO
+      INFOPLIST_KEY_NSMicrophoneUsageDescription: "Konuşarak yazabilmen (dikte) için mikrofon gerekiyor."
+      INFOPLIST_KEY_NSSpeechRecognitionUsageDescription: "Sesinizi metne çevirmek için konuşma tanıma kullanılıyor."
+      INFOPLIST_KEY_CADisableMinimumFrameDurationOnPhone: YES
+      INFOPLIST_KEY_NSSupportsLiveActivities: YES
+      ASSETCATALOG_COMPILER_APPICON_NAME: Pufy
+      ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS: YES
+      PRODUCT_BUNDLE_IDENTIFIER: com.pufy.PufyAgent
+      SWIFT_OBJC_BRIDGING_HEADER: ObjC/PufyAgent-Bridging-Header.h
+
+  PufyWidget:
+    type: app-extension
+    platform: iOS
+    sources:
+      - PufyWidget/PufyWidgetBundle.swift
+      - PufyWidget/PufyWidgetLiveActivity.swift
+      - PufyLiveActivityAttributes.swift
+      # ESKİ HATA: bunlar "resources:" altındaydı — XcodeGen'de öyle bir anahtar yok, sessizce yok sayılıyordu
+      # → widget paketinde hiç görsel yoktu, canlı etkinlikte logo çıkmıyordu.
+      - path: PufyWidget/WidgetAssets.xcassets
+        buildPhase: resources
+    settings:
+      GENERATE_INFOPLIST_FILE: NO
+      INFOPLIST_FILE: PufyWidget/Info.plist
+      PRODUCT_BUNDLE_IDENTIFIER: com.pufy.PufyAgent.PufyWidget
+      SWIFT_VERSION: "5.9"
+      ASSETCATALOG_COMPILER_OPTIMIZATION: space
+    dependencies:
+      - sdk: WidgetKit.framework
+      - sdk: SwiftUI.framework
+
+
+
+
+schemes:
+  PufyAgent:
+    build:
+      targets:
+        PufyAgent: all
+    run:
+      config: Debug
+    archive:
+      config: Release

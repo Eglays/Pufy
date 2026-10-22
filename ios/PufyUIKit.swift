@@ -1,0 +1,277 @@
+import Foundation
+
+// MARK: - Pufy UI Kit (mini uygulamaların ortak tasarım dili)
+//
+// Kullanıcı (15 Ekim 2026): "Oluşturulan uygulamalarda belli bir tema olsun; her uygulama farklı olsun ama bizim iOS
+// uygulamamızın temasına yakın — tonlar, şekiller. O dandik neon, 'yapay zeka yapmış' görünüm istemiyorum. Gece ve aydınlık
+// modu olsun, telefonun moduna göre kendiliğinden geçsin."
+//
+// Her uygulamanın klasörüne "pufy-ui.css" yazılır (index.html bunu kendi CSS'inden önce bağlar):
+//  • Pufy'nin renk dokusu: beyaz/siyah zemin, #F2F2F4 / #1C1C1E yüzeyler, #111 / #F2F2F2 yazı — tek vurgu rengi
+//  • Telefonun gece moduna göre kendiliğinden koyu (prefers-color-scheme); renkler hep var(--p-…) ile kullanılır
+//  • <html data-accent="ocean"> ile 9 sade vurgu paletinden biri (sunumlardaki temalarla aynı aile; mor/pembe yok)
+//  • Hazır iOS benzeri bileşenler: başlık, kart, gruplu liste, buton, giriş, bölmeli seçici, anahtar, çip, alt sayfa…
+// Dosya bir dosya olduğu için paylaşılan uygulamalarla web/Android'e de gider. Uygulama açılırken güncel kit yazılır.
+
+enum PufyUIKit {
+    static let fileName = "pufy-ui.css"
+
+    /// Kit dosyasını uygulama klasörüne yazar (yoksa ya da eskiyse)
+    static func ensure(_ folder: String) {
+        let url = MiniAppFiles.folderURL(folder).appendingPathComponent(fileName)
+        if let current = try? String(contentsOf: url, encoding: .utf8), current == css { return }
+        MiniAppFiles.write(fileName, content: css, folder: folder)
+    }
+
+    /// Uygulama açılırken: kiti kullanan uygulamada dosyayı güncel tut (kullanmayan eski uygulamalara dokunmaz)
+    static func refreshIfUsed(_ folder: String) {
+        let url = MiniAppFiles.folderURL(folder).appendingPathComponent(fileName)
+        guard FileManager.default.fileExists(atPath: url.path) else { return }
+        ensure(folder)
+    }
+
+    static let accents = ["mono", "ocean", "forest", "sunset", "sand", "slate", "crimson", "teal", "gold"]
+
+    static let css = """
+    /* Pufy UI Kit — Pufy'nin tasarım dili. Bu dosyayı DEĞİŞTİRME; ince ayarlar css/style.css'te.
+       Renkler telefonun gece/aydınlık moduna göre kendiliğinden değişir: her yerde var(--p-…) kullan. */
+    :root {
+      color-scheme: light dark;
+      --p-font: -apple-system, "SF Pro Text", system-ui, sans-serif;
+      --p-font-display: -apple-system, "SF Pro Display", system-ui, sans-serif;
+      --p-font-round: ui-rounded, "SF Pro Rounded", -apple-system, system-ui, sans-serif;
+      --p-bg: #FFFFFF;
+      --p-bg-2: #F2F2F4;
+      --p-surface: #FFFFFF;
+      --p-surface-2: #F2F2F4;
+      --p-raised: #FFFFFF;
+      --p-fill: rgba(120, 120, 128, .16);
+      --p-text: #111111;
+      --p-text-2: #6E6E73;
+      --p-text-3: #AEAEB2;
+      --p-border: rgba(0, 0, 0, .08);
+      --p-separator: rgba(60, 60, 67, .14);
+      --p-accent: #111111;
+      --p-on-accent: #FFFFFF;
+      --p-accent-soft: rgba(17, 17, 17, .07);
+      --p-success: #2E7D4F;
+      --p-warning: #B86E00;
+      --p-danger: #C9343A;
+      --p-shadow: 0 1px 2px rgba(0, 0, 0, .04), 0 8px 24px rgba(0, 0, 0, .06);
+      --p-shadow-lg: 0 2px 6px rgba(0, 0, 0, .05), 0 24px 48px rgba(0, 0, 0, .12);
+      --p-glass: rgba(255, 255, 255, .74);
+      --p-r-s: 10px;
+      --p-r-m: 14px;
+      --p-r-l: 20px;
+      --p-r-xl: 28px;
+      --p-ease: cubic-bezier(.2, .8, .2, 1);
+      --p-safe-top: env(safe-area-inset-top, 0px);
+      --p-safe-bottom: env(safe-area-inset-bottom, 0px);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --p-bg: #000000;
+        --p-bg-2: #000000;
+        --p-surface: #1C1C1E;
+        --p-surface-2: #2A2A2C;
+        --p-raised: #3A3A3C;
+        --p-fill: rgba(120, 120, 128, .32);
+        --p-text: #F2F2F2;
+        --p-text-2: #A1A1A6;
+        --p-text-3: #636366;
+        --p-border: rgba(255, 255, 255, .10);
+        --p-separator: rgba(84, 84, 88, .55);
+        --p-accent: #F2F2F2;
+        --p-on-accent: #111111;
+        --p-accent-soft: rgba(242, 242, 242, .10);
+        --p-success: #4CC27A;
+        --p-warning: #F2B03C;
+        --p-danger: #FF5F64;
+        --p-shadow: 0 1px 2px rgba(0, 0, 0, .5), 0 8px 24px rgba(0, 0, 0, .4);
+        --p-shadow-lg: 0 2px 6px rgba(0, 0, 0, .5), 0 24px 48px rgba(0, 0, 0, .55);
+        --p-glass: rgba(28, 28, 30, .74);
+      }
+    }
+
+    /* Vurgu paletleri: <html data-accent="ocean"> (aydınlık / gece tonları ayrı) */
+    :root[data-accent="ocean"]   { --p-accent: #1F6FD1; --p-on-accent: #FFFFFF; --p-accent-soft: rgba(31, 111, 209, .10); }
+    :root[data-accent="forest"]  { --p-accent: #2E7D4F; --p-on-accent: #FFFFFF; --p-accent-soft: rgba(46, 125, 79, .10); }
+    :root[data-accent="sunset"]  { --p-accent: #D9581F; --p-on-accent: #FFFFFF; --p-accent-soft: rgba(217, 88, 31, .10); }
+    :root[data-accent="sand"]    { --p-accent: #A87A2C; --p-on-accent: #FFFFFF; --p-accent-soft: rgba(168, 122, 44, .12); }
+    :root[data-accent="slate"]   { --p-accent: #3E6385; --p-on-accent: #FFFFFF; --p-accent-soft: rgba(62, 99, 133, .10); }
+    :root[data-accent="crimson"] { --p-accent: #C2272D; --p-on-accent: #FFFFFF; --p-accent-soft: rgba(194, 39, 45, .09); }
+    :root[data-accent="teal"]    { --p-accent: #128A82; --p-on-accent: #FFFFFF; --p-accent-soft: rgba(18, 138, 130, .10); }
+    :root[data-accent="gold"]    { --p-accent: #B98500; --p-on-accent: #FFFFFF; --p-accent-soft: rgba(185, 133, 0, .12); }
+    @media (prefers-color-scheme: dark) {
+      :root[data-accent="ocean"]   { --p-accent: #5AA2F5; --p-on-accent: #06111F; --p-accent-soft: rgba(90, 162, 245, .16); }
+      :root[data-accent="forest"]  { --p-accent: #5CC489; --p-on-accent: #06140C; --p-accent-soft: rgba(92, 196, 137, .16); }
+      :root[data-accent="sunset"]  { --p-accent: #FF8A57; --p-on-accent: #1A0A03; --p-accent-soft: rgba(255, 138, 87, .16); }
+      :root[data-accent="sand"]    { --p-accent: #D9AE5F; --p-on-accent: #1A1305; --p-accent-soft: rgba(217, 174, 95, .16); }
+      :root[data-accent="slate"]   { --p-accent: #8AAED0; --p-on-accent: #0A121B; --p-accent-soft: rgba(138, 174, 208, .16); }
+      :root[data-accent="crimson"] { --p-accent: #FF6166; --p-on-accent: #1C0405; --p-accent-soft: rgba(255, 97, 102, .16); }
+      :root[data-accent="teal"]    { --p-accent: #4FD1C5; --p-on-accent: #04171A; --p-accent-soft: rgba(79, 209, 197, .16); }
+      :root[data-accent="gold"]    { --p-accent: #F2C14E; --p-on-accent: #1A1300; --p-accent-soft: rgba(242, 193, 78, .16); }
+    }
+
+    /* Temel (sıfır öncelik: uygulamanın kendi CSS'i her zaman kazanır) */
+    :where(*, *::before, *::after) { box-sizing: border-box; }
+    :where(html) {
+      background: var(--p-bg); color: var(--p-text); font-family: var(--p-font);
+      -webkit-text-size-adjust: 100%; -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: transparent;
+    }
+    :where(body) { margin: 0; min-height: 100dvh; background: var(--p-bg); color: var(--p-text); font-size: 17px; line-height: 1.4; }
+    :where(button, input, select, textarea) { font: inherit; color: inherit; }
+    :where(a) { color: var(--p-accent); text-decoration: none; }
+    :where(h1, h2, h3) { letter-spacing: -.02em; margin: 0; }
+
+    /* Yerleşim */
+    :where(.p-app) { min-height: 100dvh; background: var(--p-bg); color: var(--p-text); }
+    :where(.p-grouped) { background: var(--p-bg-2); }
+    :where(.p-content) { padding: 0 20px calc(32px + var(--p-safe-bottom)); max-width: 720px; margin: 0 auto; }
+    :where(.p-header) { padding: calc(var(--p-safe-top) + 14px) 20px 10px; max-width: 720px; margin: 0 auto; }
+    :where(.p-large-title) { font: 700 34px/1.12 var(--p-font-display); letter-spacing: -.025em; margin: 0; }
+    :where(.p-title) { font: 700 22px/1.2 var(--p-font-display); letter-spacing: -.02em; margin: 0; }
+    :where(.p-subtitle) { font-size: 15px; color: var(--p-text-2); margin: 4px 0 0; }
+    :where(.p-caption) { font-size: 13px; color: var(--p-text-2); }
+    :where(.p-section-title) {
+      font-size: 13px; font-weight: 600; letter-spacing: .02em; text-transform: uppercase;
+      color: var(--p-text-2); margin: 26px 4px 8px;
+    }
+    :where(.p-stack) { display: flex; flex-direction: column; gap: 12px; }
+    :where(.p-hstack) { display: flex; align-items: center; gap: 12px; }
+    :where(.p-spacer) { flex: 1; }
+
+    /* Kart ve liste */
+    :where(.p-card) {
+      background: var(--p-surface); border-radius: var(--p-r-l); padding: 16px;
+      border: .5px solid var(--p-border);
+    }
+    :where(.p-card.elevated) { box-shadow: var(--p-shadow); border-color: transparent; }
+    :where(.p-list) {
+      background: var(--p-surface); border-radius: var(--p-r-l); overflow: hidden;
+      border: .5px solid var(--p-border);
+    }
+    :where(.p-row) {
+      display: flex; align-items: center; gap: 12px; min-height: 52px; padding: 11px 16px;
+      position: relative; background: transparent; width: 100%; text-align: left; border: 0;
+    }
+    :where(.p-row + .p-row)::before {
+      content: ""; position: absolute; top: 0; left: 16px; right: 0; height: .5px; background: var(--p-separator);
+    }
+    :where(button.p-row:active, a.p-row:active, .p-row.tappable:active) { background: var(--p-fill); }
+    :where(.p-row-title) { font-size: 17px; }
+    :where(.p-row-detail) { margin-left: auto; color: var(--p-text-2); font-size: 15px; }
+    :where(.p-row-icon) {
+      width: 30px; height: 30px; border-radius: 8px; display: grid; place-items: center; flex: none;
+      background: var(--p-accent-soft); color: var(--p-accent);
+    }
+
+    /* Butonlar */
+    :where(.p-btn) {
+      appearance: none; -webkit-appearance: none; border: 0; cursor: pointer;
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      min-height: 50px; padding: 0 22px; border-radius: var(--p-r-m);
+      font: 600 17px/1 var(--p-font); background: var(--p-accent); color: var(--p-on-accent);
+      transition: transform .18s var(--p-ease), opacity .18s var(--p-ease), background .2s var(--p-ease);
+      -webkit-user-select: none; user-select: none;
+    }
+    :where(.p-btn:active) { transform: scale(.97); opacity: .88; }
+    :where(.p-btn:disabled) { opacity: .4; pointer-events: none; }
+    :where(.p-btn.secondary) { background: var(--p-fill); color: var(--p-text); }
+    :where(.p-btn.tinted) { background: var(--p-accent-soft); color: var(--p-accent); }
+    :where(.p-btn.ghost) { background: transparent; color: var(--p-accent); min-height: 44px; padding: 0 12px; }
+    :where(.p-btn.danger) { background: var(--p-danger); color: #FFFFFF; }
+    :where(.p-btn.small) { min-height: 36px; padding: 0 14px; font-size: 15px; border-radius: 11px; }
+    :where(.p-btn.block) { width: 100%; }
+    :where(.p-icon-btn) {
+      appearance: none; border: 0; width: 40px; height: 40px; border-radius: 50%;
+      display: inline-grid; place-items: center; background: var(--p-fill); color: var(--p-text);
+      transition: transform .18s var(--p-ease);
+    }
+    :where(.p-icon-btn:active) { transform: scale(.92); }
+
+    /* Form */
+    :where(.p-input) {
+      width: 100%; font-size: 17px; color: var(--p-text); background: var(--p-fill);
+      border: 0; border-radius: var(--p-r-m); padding: 14px 16px; outline: none;
+      transition: box-shadow .2s var(--p-ease);
+    }
+    :where(.p-input::placeholder) { color: var(--p-text-3); }
+    :where(.p-input:focus) { box-shadow: 0 0 0 3px var(--p-accent-soft); }
+    :where(.p-segment) { display: flex; background: var(--p-fill); border-radius: 11px; padding: 2px; gap: 2px; }
+    :where(.p-segment > button) {
+      flex: 1; border: 0; background: transparent; color: var(--p-text); font: 600 14px var(--p-font);
+      padding: 8px 10px; border-radius: 9px; transition: background .2s var(--p-ease);
+    }
+    :where(.p-segment > button.active, .p-segment > button[aria-pressed="true"]) {
+      background: var(--p-raised); box-shadow: 0 1px 3px rgba(0, 0, 0, .12);
+    }
+    :where(input.p-toggle) {
+      appearance: none; -webkit-appearance: none; margin: 0; flex: none; cursor: pointer;
+      width: 51px; height: 31px; border-radius: 16px; background: var(--p-fill); position: relative;
+      transition: background .22s var(--p-ease);
+    }
+    :where(input.p-toggle)::after {
+      content: ""; position: absolute; top: 2px; left: 2px; width: 27px; height: 27px; border-radius: 50%;
+      background: #FFFFFF; box-shadow: 0 2px 6px rgba(0, 0, 0, .22); transition: transform .22s var(--p-ease), background .22s;
+    }
+    :where(input.p-toggle:checked) { background: var(--p-accent); }
+    :where(input.p-toggle:checked)::after { transform: translateX(20px); background: var(--p-on-accent); }
+
+    /* Küçük parçalar */
+    :where(.p-chip) {
+      display: inline-flex; align-items: center; gap: 6px; padding: 7px 13px; border-radius: 999px; border: 0;
+      background: var(--p-fill); color: var(--p-text); font: 600 14px var(--p-font);
+    }
+    :where(.p-chip.active, .p-chip[aria-pressed="true"]) { background: var(--p-accent); color: var(--p-on-accent); }
+    :where(.p-badge) {
+      display: inline-flex; align-items: center; padding: 3px 8px; border-radius: 999px;
+      background: var(--p-accent-soft); color: var(--p-accent); font: 700 12px var(--p-font);
+    }
+    :where(.p-stat) {
+      font: 700 34px/1.05 var(--p-font-round); letter-spacing: -.02em; font-variant-numeric: tabular-nums;
+    }
+    :where(.p-progress) { height: 6px; border-radius: 3px; background: var(--p-fill); overflow: hidden; }
+    :where(.p-progress > span) {
+      display: block; height: 100%; border-radius: inherit; background: var(--p-accent);
+      transition: width .4s var(--p-ease);
+    }
+    :where(.p-divider) { height: .5px; background: var(--p-separator); border: 0; margin: 12px 0; }
+    :where(.p-empty) { text-align: center; padding: 56px 24px; color: var(--p-text-2); }
+    :where(.p-empty svg) { width: 44px; height: 44px; color: var(--p-text-3); margin-bottom: 12px; }
+    :where(.p-empty h3) { color: var(--p-text); font-size: 20px; margin: 0 0 6px; }
+    :where(.p-glass) {
+      background: var(--p-glass); -webkit-backdrop-filter: saturate(180%) blur(20px); backdrop-filter: saturate(180%) blur(20px);
+    }
+    :where(.p-skeleton) {
+      border-radius: var(--p-r-s); background: linear-gradient(90deg, var(--p-fill) 0%, var(--p-surface-2) 50%, var(--p-fill) 100%);
+      background-size: 200% 100%; animation: p-shimmer 1.3s linear infinite; min-height: 14px;
+    }
+
+    /* Alt sayfa */
+    :where(.p-backdrop) {
+      position: fixed; inset: 0; background: rgba(0, 0, 0, .32); opacity: 0; pointer-events: none;
+      transition: opacity .28s var(--p-ease); z-index: 50;
+    }
+    :where(.p-backdrop.open) { opacity: 1; pointer-events: auto; }
+    :where(.p-sheet) {
+      position: fixed; left: 0; right: 0; bottom: 0; z-index: 51; max-height: 88dvh; overflow: auto;
+      background: var(--p-surface); border-radius: var(--p-r-xl) var(--p-r-xl) 0 0;
+      padding: 10px 20px calc(24px + var(--p-safe-bottom)); box-shadow: var(--p-shadow-lg);
+      transform: translateY(105%); transition: transform .34s var(--p-ease);
+    }
+    :where(.p-sheet)::before {
+      content: ""; display: block; width: 36px; height: 5px; border-radius: 3px; background: var(--p-text-3);
+      margin: 0 auto 14px; opacity: .6;
+    }
+    :where(.p-sheet.open) { transform: translateY(0); }
+
+    /* Hareket */
+    :where(.p-fade-in) { animation: p-fade-in .32s var(--p-ease) both; }
+    @keyframes p-fade-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+    @keyframes p-shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+    @media (prefers-reduced-motion: reduce) {
+      :where(*) { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+    }
+    """
+}

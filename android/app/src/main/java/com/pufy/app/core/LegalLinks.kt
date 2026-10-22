@@ -1,0 +1,21 @@
+package com.pufy.app.core
+
+object LegalLinks {
+    const val BASE = "https://{{ALAN_ADI}}"
+    const val SUPPORT_EMAIL = "{{DESTEK_EPOSTA}}"
+    val REPORT_ENDPOINT: String? = null // ileride doldurulacak, şimdilik null
+
+    fun isTurkish(): Boolean = !AppLocales.isEnglish()
+
+    fun privacy(tr: Boolean = isTurkish()): String =
+        BASE + if (tr) "/tr/gizlilik/" else "/en/privacy/"
+
+    fun terms(tr: Boolean = isTurkish()): String =
+        BASE + if (tr) "/tr/kosullar/" else "/en/terms/"
+
+    fun deletion(tr: Boolean = isTurkish()): String =
+        BASE + if (tr) "/tr/veri-silme/" else "/en/delete-data/"
+
+    fun support(tr: Boolean = isTurkish()): String =
+        BASE + if (tr) "/tr/destek/" else "/en/support/"
+}

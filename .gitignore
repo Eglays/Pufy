@@ -1,0 +1,28 @@
+# macOS
+.DS_Store
+
+# iOS
+ios/PufyAgent.xcodeproj/
+ios/Config/Local.xcconfig
+DerivedData/
+build/
+*.xcuserstate
+xcuserdata/
+
+# Android
+android/local.properties
+android/keystore.properties
+android/.gradle/
+android/.kotlin/
+android/build/
+android/app/build/
+android/app/release/
+android/.idea/
+*.iml
+*.jks
+*.keystore
+captures/
+
+# misc
+*.bak*
+__pycache__/
