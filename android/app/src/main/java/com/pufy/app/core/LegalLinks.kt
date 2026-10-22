@@ -1,8 +1,8 @@
 package com.pufy.app.core
 
 object LegalLinks {
-    const val BASE = "https://{{ALAN_ADI}}"
-    const val SUPPORT_EMAIL = "{{DESTEK_EPOSTA}}"
+    const val BASE = "https://eglays.github.io"
+    const val SUPPORT_EMAIL = "ahmt.yacel@gmail.com"
     val REPORT_ENDPOINT: String? = null // ileride doldurulacak, şimdilik null
 
     fun isTurkish(): Boolean = !AppLocales.isEnglish()

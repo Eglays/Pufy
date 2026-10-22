@@ -1,8 +1,8 @@
 import Foundation
 
 enum LegalLinks {
-    static let base = "https://{{ALAN_ADI}}"
-    static let supportEmail = "{{DESTEK_EPOSTA}}"
+    static let base = "https://eglays.github.io"
+    static let supportEmail = "ahmt.yacel@gmail.com"
     static let reportEndpoint: String? = nil
 
     static var isTurkish: Bool {

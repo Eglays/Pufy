@@ -66,7 +66,7 @@ Diğer ayrıntılar:
   - **Canlı skorlar (iOS):** flashscore.mobi okunur; oraya kullanıcı verisi gönderilmez.
 - **Uygulamada olmayanlar:** Analitik, hata raporlama, reklam ya da takip kütüphanesi yok. Kaynak kodda kendin kontrol edebilirsin.
 
-Ayrıntılar: [PRIVACY.md](PRIVACY.md)
+Ayrıntılar: [PRIVACY.md](PRIVACY.md) · Web sitesi: [eglays.github.io](https://eglays.github.io) · Destek: ahmt.yacel@gmail.com
 
 ## Desteklenen sağlayıcılar
 

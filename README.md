@@ -66,7 +66,7 @@ Other details:
   - **Live scores (iOS):** The app reads flashscore.mobi; no user data is sent to it.
 - **Not in the app:** No analytics, crash reporting, ads or tracking SDKs. You can check this in the source.
 
-The full list is in [PRIVACY.md](PRIVACY.md).
+The full list is in [PRIVACY.md](PRIVACY.md). Website: [eglays.github.io](https://eglays.github.io) · Support: ahmt.yacel@gmail.com
 
 ## Supported AI providers
 
