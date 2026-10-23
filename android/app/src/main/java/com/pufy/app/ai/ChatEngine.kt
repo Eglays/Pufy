@@ -332,7 +332,7 @@ object ChatEngine {
         scope.launch {
             val generated = runCatching {
                 AiClient.generate("Mesaj: \"${prompt.take(300)}\"",
-                    system = "Bu mesajla başlayan sohbet için en fazla 4 kelimelik, emojisiz, tırnaksız, Türkçe bir başlık yaz. Sadece başlığı yaz.",
+                    system = "Bu mesajla başlayan sohbet için en fazla 4 kelimelik, emojisiz, tırnaksız bir başlık yaz; başlık mesajın dilinde olsun (İngilizce mesaja İngilizce başlık). Sadece başlığı yaz.",
                     maxOutputTokens = 300, thinking = "low")
             }.getOrNull() ?: return@launch
             val title = generated.trim().trim('"', '\'', '*', '#', '.')

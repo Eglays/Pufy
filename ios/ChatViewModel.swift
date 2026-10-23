@@ -859,7 +859,7 @@ class ChatViewModel: ObservableObject {
         Task { [weak self] in
             guard let generated = try? await GeminiService.shared.generateContent(
                 prompt: "Mesaj: \"\(prompt.prefix(300))\"",
-                systemPrompt: "Bu mesajla başlayan sohbet için en fazla 4 kelimelik, emojisiz, tırnaksız, Türkçe bir başlık yaz. Sadece başlığı yaz.",
+                systemPrompt: "Bu mesajla başlayan sohbet için en fazla 4 kelimelik, emojisiz, tırnaksız bir başlık yaz; başlık mesajın dilinde olsun (İngilizce mesaja İngilizce başlık). Sadece başlığı yaz.",
                 // Düşünme payı 40 token'lık sınırı yiyip başlığı boş bırakabiliyordu
                 maxOutputTokens: 300,
                 thinking: "low"
