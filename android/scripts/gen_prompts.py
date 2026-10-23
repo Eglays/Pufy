@@ -5,7 +5,7 @@ import re
 from pathlib import Path
 
 root = Path(__file__).resolve().parents[2]
-src = lambda name: (root / name).read_text(encoding='utf-8')
+src = lambda name: (root / 'ios' / name).read_text(encoding='utf-8')
 
 
 def swift_literal(text, start):

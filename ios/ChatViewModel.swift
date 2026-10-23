@@ -1225,6 +1225,13 @@ class ChatViewModel: ObservableObject {
     }
 
     /// - focus: yönergenin hangi ayrıntılarının gerektiğine bakılan metin (kullanıcının mesajı; yoksa memoryQuery)
+    /// Cevap dili: yönerge Türkçe olsa da model kullanıcının son mesajının dilinde cevap versin (başta ve sonda tekrar edilir)
+    static var answerLanguageRule: String {
+        AppLanguage.isEnglish
+            ? "\nANSWER LANGUAGE: Always reply in the language of the user's latest message (English message → English, Turkish → Turkish), even though these instructions are written in Turkish. If unclear, reply in English."
+            : "\nCEVAP DİLİ: Her zaman kullanıcının son mesajının dilinde cevap ver (İngilizce yazarsa İngilizce, Türkçe yazarsa Türkçe). Belirsizse Türkçe."
+    }
+
     private func buildAgentSystemPrompt(reminderMode: Bool, isSpaceChat: Bool, memoryQuery: String,
                                         currentSessionID: UUID? = nil, focus: String? = nil) -> String {
         let now = Date()
@@ -1290,6 +1297,7 @@ class ChatViewModel: ObservableObject {
         // Şampiyonlar Ligi saatlerini 1 saat yanlış verdi." → bilgi sınırı, saat dilimi ve görsel kuralları eklendi.
         // Arama kararı (HAKEM KARARI) ve görsel üretme kuralları DeepResearchManager'da en sona eklenir.
         return """
+        \(Self.answerLanguageRule)
         Sen Pufy'sin: kullanıcının kişisel yapay zeka asistanı. Zekisin, dürüstsün; sıcak ama lafı uzatmayan, doğal bir Türkçeyle konuşursun (kullanıcı başka bir dilde yazarsa o dilde cevap ver).
 
         # 1. ZAMAN VE BİLGİNİN SINIRI
@@ -1484,7 +1492,7 @@ class ChatViewModel: ObservableObject {
         \(reminderMode ? "\nÖNEMLİ: Kullanıcı şu an özellikle hatırlatıcı kurmak istiyor. Hatırlatıcıyı mutlaka [REMINDER:] etiketiyle kur." : "")
         \(isSpaceChat ? "\nZAMANLANMIŞ GÖREV SOHBETİ: Bu, zamanlanmış bir AI görevidir. Görevi verilen araştırma sonuçlarıyla eksiksiz yerine getir; [CHOICES] kullanma." : "")
         \n[DOSYA: …] blokları kullanıcının eklediği dosyalardır. Cevabını dosyanın içeriğine dayandır; dosyada olmayan bilgiyi dosyadaymış gibi söyleme. Metin kısaltıldıysa bunu belirt.
-        \(AppLanguage.isEnglish ? "\nAnswer language: reply in the user's language; if unclear, reply in English." : "\nCevap dili: Kullanıcının yazdığı dil (genelde Türkçe).")
+        \(Self.answerLanguageRule)
         """
     }
 
