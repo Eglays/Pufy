@@ -1,5 +1,6 @@
 package com.pufy.app.ui.switcher
 
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
@@ -168,9 +169,14 @@ fun TabSwitcher(onCreate: () -> Unit, onEdit: (MiniApp) -> Unit) {
                 },
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
-                    .padding(end = 24.dp, bottom = 86.dp)
+                    .padding(start = 24.dp, end = 24.dp, bottom = 86.dp)
                     .navigationBarsPadding()
             )
+            LaunchedEffect(Unit) {
+                kotlinx.coroutines.delay(8000)
+                com.pufy.app.core.Settings.setBool(com.pufy.app.core.Settings.HINT_NEW_APP_SHOWN, true)
+                hintNewAppShown = true
+            }
         }
         AnimatedVisibility(pendingDelete != null, Modifier.align(Alignment.BottomCenter).padding(bottom = 110.dp).navigationBarsPadding(),
             enter = fadeIn() + slideInVertically { it }, exit = fadeOut() + slideOutVertically { it }) {
@@ -379,8 +385,14 @@ private fun NewAppCard(w: Float, h: Float, onCreate: () -> Unit) {
                 onDismiss = {
                     com.pufy.app.core.Settings.setBool(com.pufy.app.core.Settings.HINT_NEW_APP_SHOWN, true)
                     hintNewAppShown = true
-                }
+                },
+                modifier = Modifier.widthIn(max = w.dp)
             )
+            LaunchedEffect(Unit) {
+                kotlinx.coroutines.delay(8000)
+                com.pufy.app.core.Settings.setBool(com.pufy.app.core.Settings.HINT_NEW_APP_SHOWN, true)
+                hintNewAppShown = true
+            }
         } else {
             Spacer(Modifier.height(26.dp))
         }

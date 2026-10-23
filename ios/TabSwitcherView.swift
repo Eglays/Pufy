@@ -321,18 +321,12 @@ struct TabSwitcherView: View {
 
     private func newAppCard(card: CGSize) -> some View {
         Button {
+            hintNewAppShown = true
             PremiumHaptics.medium()
             editingAppForCreator = nil
             showCreator = true
         } label: {
             VStack(spacing: 10) {
-                if !hintNewAppShown {
-                    HintBubbleView(text: "Ne istediğini yaz, Pufy senin için uygulamayı yazsın.") {
-                        withAnimation(SmoothSpring.standard) { hintNewAppShown = true }
-                    }
-                    .padding(.bottom, 4)
-                    .transition(.scale.combined(with: .opacity))
-                }
                 Color.clear.frame(height: 26)
                 RoundedRectangle(cornerRadius: 30, style: .continuous)
                     .strokeBorder(style: StrokeStyle(lineWidth: 1.5, dash: [8, 6]))
@@ -356,6 +350,25 @@ struct TabSwitcherView: View {
             }
         }
         .buttonStyle(PremiumCardButtonStyle())
+        .overlay(alignment: .top) {
+            if !hintNewAppShown {
+                newAppHint
+                    .frame(maxWidth: card.width)
+                    .offset(y: -30)
+            }
+        }
+    }
+
+    /// "Yeni uygulama" ipucu: bir kez, birkaç saniye görünür; dokununca ya da "+"ya basınca kapanır
+    private var newAppHint: some View {
+        HintBubbleView(text: "Ne istediğini yaz, Pufy senin için uygulamayı yazsın.") {
+            withAnimation(SmoothSpring.standard) { hintNewAppShown = true }
+        }
+        .transition(.scale.combined(with: .opacity))
+        .task {
+            try? await Task.sleep(nanoseconds: 8_000_000_000)
+            withAnimation(SmoothSpring.standard) { hintNewAppShown = true }
+        }
     }
 
     // MARK: Silme (Geri al ile)
@@ -474,6 +487,11 @@ struct TabSwitcherView: View {
                 }
                 .tabViewStyle(.page(indexDisplayMode: .never))
 
+                if !hintNewAppShown {
+                    newAppHint
+                        .padding(.horizontal, 24)
+                }
+
                 if pages.count > 1 {
                     HStack(spacing: 7) {
                         ForEach(pages.indices, id: \.self) { page in
@@ -504,6 +522,7 @@ struct TabSwitcherView: View {
 
     private var newAppIcon: some View {
         Button {
+            hintNewAppShown = true
             editingAppForCreator = nil
             showCreator = true
         } label: {
@@ -520,15 +539,6 @@ struct TabSwitcherView: View {
             }
         }
         .buttonStyle(PremiumScaleButtonStyle())
-        .overlay(alignment: .bottom) {
-            if !hintNewAppShown {
-                HintBubbleView(text: "Ne istediğini yaz, Pufy senin için uygulamayı yazsın.") {
-                    withAnimation(SmoothSpring.standard) { hintNewAppShown = true }
-                }
-                .offset(y: 50)
-                .transition(.scale.combined(with: .opacity))
-            }
-        }
     }
 
     private static let iconSize: CGFloat = 68

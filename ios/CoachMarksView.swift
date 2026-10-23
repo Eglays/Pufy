@@ -330,6 +330,7 @@ struct HintBubbleView: View {
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 9)
+        .frame(maxWidth: 340)
         .pufyGlass(Capsule(), interactive: true)
         .shadow(color: .black.opacity(0.16), radius: 14, x: 0, y: 6)
         .onTapGesture {
