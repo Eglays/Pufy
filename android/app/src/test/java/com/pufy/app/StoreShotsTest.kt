@@ -193,9 +193,9 @@ class StoreShotsTest {
             put("id", "m${n++}"); put("category", cat); put("text", text); put("detail", text); put("importance", imp)
             entity?.let { put("entity", it) }; (if (en) relEn else relTr)?.let { put("relation", it) }
         })
-        m("identity", "Deniz", "Deniz", 5); m("identity", "28 yaşında", "28 years old", 4); m("identity", "İzmirli", "From Izmir", 3)
-        m("people", "Elif", "Elif", 5, "Elif", "kız kardeşi", "sister"); m("people", "Mert", "Mert", 4, "Mert", "iş arkadaşı", "coworker")
-        m("people", "Zeynep", "Zeynep", 3, "Zeynep", "en yakın arkadaşı", "best friend")
+        m("identity", "Deniz", "Alex", 5); m("identity", "28 yaşında", "28 years old", 4); m("identity", "İzmirli", "From Seattle", 3)
+        m("people", "Elif", "Emma", 5, if (en) "Emma" else "Elif", "kız kardeşi", "sister"); m("people", "Mert", "Mark", 4, if (en) "Mark" else "Mert", "iş arkadaşı", "coworker")
+        m("people", "Zeynep", "Sophie", 3, if (en) "Sophie" else "Zeynep", "en yakın arkadaşı", "best friend")
         m("work", "Ürün tasarımcısı", "Product designer", 5); m("work", "Uzaktan çalışıyor", "Works remotely", 3)
         m("interests", "Fotoğrafçılık", "Photography", 4); m("interests", "Kamp", "Camping", 3); m("interests", "Basketbol", "Basketball", 3)
         m("preferences", "Filtre kahve", "Filter coffee", 3); m("preferences", "Vejetaryen", "Vegetarian", 4)

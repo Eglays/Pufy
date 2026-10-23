@@ -340,7 +340,7 @@ private fun CenterNode(modifier: Modifier) {
         Box(Modifier.size(78.dp).graphicsLayer { shadowElevation = 12.dp.toPx(); shape = CircleShape; clip = true }.background(c.primary)
             .border(3.dp, c.background, CircleShape), contentAlignment = Alignment.Center) {
             if (avatar != null) Image(avatar, null, Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
-            else Text(name.take(1).uppercase(TR).ifEmpty { "S" }, fontSize = 30.sp, fontWeight = FontWeight.Bold, color = c.onPrimary)
+            else Text(name.take(1).uppercase(TR).ifEmpty { if (com.pufy.app.core.AppLocales.isEnglish()) "Y" else "S" }, fontSize = 30.sp, fontWeight = FontWeight.Bold, color = c.onPrimary)
         }
         Text(name.ifEmpty { if (com.pufy.app.core.AppLocales.isEnglish()) "You" else "Sen" }, style = PufyType.subheadline.copy(fontWeight = FontWeight.Bold), color = c.text)
     }
