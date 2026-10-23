@@ -22,8 +22,8 @@ android {
         applicationId = "com.pufy.app"
         minSdk = 26
         targetSdk = 36
-        versionCode = 110
-        versionName = "2.9.1"
+        versionCode = 111
+        versionName = "2.9.2"
     }
 
     signingConfigs {
@@ -43,6 +43,7 @@ android {
 
     buildTypes {
         release {
+            ndk { debugSymbolLevel = "SYMBOL_TABLE" }
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
@@ -57,6 +58,11 @@ android {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
+    // Uygulama içi dil seçici var: Play paketi dillere bölerse cihaz diline göre diğer dil hiç inmiyor
+    bundle {
+        language { enableSplit = false }
+    }
+
     buildFeatures {
         compose = true
         buildConfig = true

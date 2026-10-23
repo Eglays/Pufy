@@ -210,7 +210,7 @@ fun SettingsScreen(onClose: () -> Unit) {
 
             // Sürüm etiketi
             Text(
-                "Pufy 2.9.1 · Android",
+                "Pufy ${com.pufy.app.BuildConfig.VERSION_NAME} · Android",
                 style = PufyType.caption,
                 color = c.tertiaryText,
                 modifier = Modifier
