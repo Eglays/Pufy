@@ -79,12 +79,16 @@ object AiClient {
     private const val IMAGE_PROVIDER = "pufy_image_provider"
     private const val IMAGE_KEY = "ai_image_api_key"
 
+    /** Ayar değişince ekranlar yenilensin diye (Compose sıradan özellikleri izlemez): bağlı mı + ana model */
+    val configState = kotlinx.coroutines.flow.MutableStateFlow(false to "")
+    fun refreshConfigState() { configState.value = isConfigured to modelName }
+
     var endpoint: String
         get() = Settings.string(ENDPOINT) ?: ""
-        set(v) = Settings.setString(ENDPOINT, v.trim())
+        set(v) { Settings.setString(ENDPOINT, v.trim()); refreshConfigState() }
     var modelName: String
         get() = Settings.string(MODEL) ?: ""
-        set(v) = Settings.setString(MODEL, v.trim())
+        set(v) { Settings.setString(MODEL, v.trim()); refreshConfigState() }
     /** Zor işler (derin araştırma, uygulama yapımı) için ikinci model; boşsa ana model */
     var heavyModelName: String
         get() {
@@ -97,7 +101,7 @@ object AiClient {
         set(v) = Settings.setString(IMAGE, v.trim())
     var apiFormat: ApiFormat
         get() = ApiFormat.from(Settings.string(FORMAT))
-        set(v) = Settings.setString(FORMAT, v.raw)
+        set(v) { Settings.setString(FORMAT, v.raw); refreshConfigState() }
     var streamingEnabled: Boolean
         get() = Settings.bool(STREAMING, true)
         set(v) = Settings.setBool(STREAMING, v)
@@ -106,7 +110,7 @@ object AiClient {
         set(v) = Settings.setBool(SEARCH, v)
     var apiKey: String
         get() = Settings.secret(KEY) ?: ""
-        set(v) = Settings.setSecret(KEY, v.trim())
+        set(v) { Settings.setSecret(KEY, v.trim()); refreshConfigState() }
 
     var aiProvider: String
         get() {
@@ -115,12 +119,12 @@ object AiClient {
             return when {
                 ep.contains("generativelanguage.googleapis.com") -> "gemini"
                 ep.contains("api.openai.com") -> "openai"
-                ep.contains("api.anthropic.com") -> "claude"
+                ep.contains("api.anthropic.com") -> "anthropic"
                 ep.contains("openrouter.ai") -> "openrouter"
                 else -> "custom"
             }
         }
-        set(v) = Settings.setString(PROVIDER, v)
+        set(v) { Settings.setString(PROVIDER, v); refreshConfigState() }
 
     var imageProvider: String
         get() = Settings.string(IMAGE_PROVIDER) ?: if (imageModelName.isNotBlank()) "same" else "off"
@@ -131,6 +135,9 @@ object AiClient {
         set(v) = Settings.setSecret(IMAGE_KEY, v.trim())
 
     val canUseGoogleSearch get() = apiFormat == ApiFormat.GEMINI && googleSearchEnabled
+    /** Sağlayıcının kendi ses→metin servisi var mı (yoksa dikte cihazın konuşma tanımasıyla yapılır) */
+    val supportsTranscription get() = apiFormat == ApiFormat.GEMINI ||
+            endpoint.contains("api.openai.com") || endpoint.contains("api.groq.com")
     val canGenerateImages get() = imageProvider != "off" && imageModelName.isNotBlank()
     val deepModel get() = heavyModelName.trim().ifEmpty { modelName }
     val isConfigured get() = (aiProvider in listOf("ollama", "lmstudio") && endpoint.isNotBlank()) ||
@@ -142,6 +149,7 @@ object AiClient {
 
     fun init(context: Context) {
         generatedImagesDir = File(context.filesDir, "GeneratedImages").apply { mkdirs() }
+        refreshConfigState()
     }
 
     val http: OkHttpClient = OkHttpClient.Builder()
@@ -367,7 +375,12 @@ object AiClient {
         } else {
             val url = "$base/models".toHttpUrlOrNull() ?: throw AiException(400, "Geçersiz adres")
             val b = Request.Builder().url(url).get()
-            if (apiKey.isNotEmpty()) b.header("Authorization", "Bearer $apiKey")
+            val key = apiKey.trim().removePrefix("Bearer ").trim()
+            if (base.contains("api.anthropic.com")) {
+                // Anthropic'in model listesi Bearer değil kendi başlıklarını ister
+                if (key.isNotEmpty()) b.header("x-api-key", key)
+                b.header("anthropic-version", "2023-06-01")
+            } else if (key.isNotEmpty()) b.header("Authorization", "Bearer $key")
             b.build()
         }
 
@@ -387,6 +400,28 @@ object AiClient {
         }
     }
 
+    /**
+     * Sağlayıcının canlı model listesinden makul bir varsayılan seçer (hazır model adları zamanla eskiyor).
+     * Önce önerilen ad, yoksa sağlayıcıya göre hızlı/ucuz ailenin en yeni sürümü, o da yoksa listenin ilki.
+     */
+    fun pickDefaultModel(providerId: String, models: List<String>, hint: String): String? {
+        if (models.isEmpty()) return null
+        if (hint.isNotEmpty() && models.contains(hint)) return hint
+        val skip = listOf("embed", "tts", "audio", "image", "vision-preview", "live", "realtime", "transcribe", "whisper", "moderation", "guard", "search")
+        val usable = models.filter { m -> skip.none { m.lowercase().contains(it) } }.ifEmpty { models }
+        fun version(m: String) = Regex("""\d+(\.\d+)?""").findAll(m).map { it.value.toDoubleOrNull() ?: 0.0 }.firstOrNull() ?: 0.0
+        fun newest(filter: (String) -> Boolean) = usable.filter(filter).maxByOrNull(::version)
+        val lc = { m: String -> m.lowercase() }
+        return when (providerId) {
+            "gemini" -> newest { lc(it).contains("flash") && !lc(it).contains("lite") } ?: newest { lc(it).contains("gemini") }
+            "openai" -> newest { lc(it).startsWith("gpt-") && lc(it).contains("mini") } ?: newest { lc(it).startsWith("gpt-") }
+            "anthropic" -> newest { lc(it).contains("haiku") } ?: newest { lc(it).contains("sonnet") }
+            "xai" -> newest { lc(it).contains("grok") && lc(it).contains("mini") } ?: newest { lc(it).contains("grok") }
+            "mistral" -> usable.firstOrNull { lc(it).contains("small") && lc(it).contains("latest") } ?: newest { lc(it).contains("mistral") }
+            else -> null
+        } ?: usable.first()
+    }
+
     /** İlk kurulum bağlantı denemesi: en fazla 20 token ile test isteği */
     suspend fun testConnectionDetailed(endpoint: String, format: ApiFormat, apiKey: String, model: String): Result<String> = withContext(Dispatchers.IO) {
         runCatching {
@@ -399,7 +434,7 @@ object AiClient {
             if (base.isEmpty()) throw AiException(0, "İnternete ulaşılamadı")
             if (model.isEmpty()) throw AiException(404, "Model bulunamadı")
 
-            val client = http.newBuilder().callTimeout(15, TimeUnit.SECONDS).readTimeout(15, TimeUnit.SECONDS).build()
+            val client = http.newBuilder().callTimeout(40, TimeUnit.SECONDS).readTimeout(40, TimeUnit.SECONDS).build()
             val request = if (format == ApiFormat.GEMINI) {
                 val url = "$base/v1beta/models/$model:generateContent".toHttpUrlOrNull()?.newBuilder()?.apply {
                     if (cleanKey.isNotEmpty()) addQueryParameter("key", cleanKey)
@@ -413,7 +448,8 @@ object AiClient {
                 val url = path.toHttpUrlOrNull() ?: throw AiException(0, "İnternete ulaşılamadı")
                 val b = Request.Builder().url(url)
                 if (cleanKey.isNotEmpty()) b.header("Authorization", "Bearer $cleanKey")
-                val jsonBody = """{"model":"$model","messages":[{"role":"user","content":"Merhaba"}],"max_tokens":20}"""
+                val limit = if (base.contains("api.openai.com")) "\"max_completion_tokens\":64" else "\"max_tokens\":20"
+                val jsonBody = """{"model":"$model","messages":[{"role":"user","content":"Merhaba"}],$limit}"""
                 b.post(jsonBody.toRequestBody("application/json".toMediaType())).build()
             }
 

@@ -117,10 +117,11 @@ object ChatEngine {
         val sessionID = _current.value ?: return
         val names = images.map { saveImage(it) }
         val user = Message(content = prompt, role = "user", syncImages = names, isVoiceInitiated = isVoice, files = files.takeIf { it.isNotEmpty() })
+        // Geçmiş, yeni mesaj eklenmeden önceki hâlden: yeni mesaj istekte ayrıca (dosyalarıyla) gidiyor
+        val history = apiHistory(ChatStore.session(sessionID)?.messages ?: emptyList())
         ChatStore.mutate(sessionID) { it.copy(messages = it.messages + user) }
         ChatStore.moveToTop(sessionID)
         pendingChoicesFor.value = null
-        val history = apiHistory(ChatStore.session(sessionID)?.messages ?: emptyList())
         val fullPrompt = formatPromptWithFiles(prompt, files)
         run(sessionID, fullPrompt, userPrompt = prompt, images, history, reminderMode, forceSearch, isVoice, forceDeep, hasFiles = files.isNotEmpty())
     }
@@ -314,7 +315,9 @@ object ChatEngine {
         val prompt = task.aiTaskPrompt.ifBlank { task.title }
         val sessionID = ensureTaskSession(taskID, task.title, prompt)
         open(sessionID)
-        val history = apiHistory(ChatStore.session(sessionID)?.messages ?: emptyList())
+        // Görev isteği her çalıştırmada ayrıca gidiyor; sondaki aynı kullanıcı mesajı geçmişte tekrar etmesin
+        val past = (ChatStore.session(sessionID)?.messages ?: emptyList()).let { m -> if (m.lastOrNull()?.let { it.isUser && it.content == prompt } == true) m.dropLast(1) else m }
+        val history = apiHistory(past)
         run(sessionID, prompt, userPrompt = prompt, emptyList(), history, reminderMode = false, forceSearch = false, isVoice = false)
     }
 
@@ -371,13 +374,8 @@ object ChatEngine {
             notesSection = if (noteRelated) Prompts.notesFull(NoteStore.promptText()) else Prompts.notesShort(NoteStore.titlesText()),
             reminderMode = reminderMode, isSpaceChat = isSpaceChat,
         )) { timeZoneGuide() }
-        val languageRule = if (com.pufy.app.core.AppLocales.isEnglish()) {
-            "\nAnswer language: reply in the user's language; if unclear, reply in English."
-        } else {
-            "\nCevap dili: Kullanıcının yazdığı dil (genelde Türkçe)."
-        }
-        val fileRule = "\n\n[DOSYA: …] blokları kullanıcının eklediği dosyalardır. Cevabını dosyanın içeriğine dayandır; dosyada olmayan bilgiyi dosyadaymış gibi söyleme. Metin kısaltıldıysa bunu belirt."
-        return base + languageRule + fileRule
+        // Cevap dili ve dosya kuralı yönergenin içinde (Prompts.agent, iOS ile aynı kaynaktan)
+        return base
     }
 
     private fun tokens(text: String) = text.lowercase(TR).split(Regex("[^\\p{L}\\p{N}]+")).filter { it.length >= 3 }

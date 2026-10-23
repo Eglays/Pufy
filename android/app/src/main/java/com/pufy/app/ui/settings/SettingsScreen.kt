@@ -122,6 +122,7 @@ fun SettingsScreen(onClose: () -> Unit) {
         runCatching { AppFiles.miniAppData.deleteRecursively() }
         AIReportStore.clearAll()
         com.pufy.app.core.Settings.clearAll()
+        com.pufy.app.ai.AiClient.refreshConfigState()
         com.pufy.app.core.Settings.setBool(com.pufy.app.core.Settings.ONBOARDING_DONE, false)
         com.pufy.app.ui.AppNav.onboarding.value = true
         onClose()

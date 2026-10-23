@@ -332,6 +332,7 @@
     <string name="slides_count">%1$d slides</string>
     <string name="dictation_mic_failed">Could not access microphone.</string>
     <string name="dictation_transcribe_failed">Transcription failed.</string>
+    <string name="dictation_unavailable">Speech recognition isn\'t available on this device. Install the Google app and try again.</string>
     <string name="dictation_transcribing">Transcribing…</string>
     <string name="remove_action">Remove</string>
     <string name="sent_image">Sent image</string>

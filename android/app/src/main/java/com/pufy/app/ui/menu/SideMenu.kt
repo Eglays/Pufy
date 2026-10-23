@@ -367,7 +367,7 @@ private fun Footer() {
         Row(Modifier.weight(1f).pressable(scale = 0.98f) { AppNav.settingsVisible.value = true }, verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(1.dp)) {
                 Text(name.ifEmpty { stringResource(R.string.profile) }, style = PufyType.subheadline.copy(fontWeight = FontWeight.SemiBold), color = c.text)
-                Text(AiClient.modelName.ifEmpty { stringResource(R.string.no_model_selected) }, style = PufyType.caption, color = c.secondaryText, maxLines = 1)
+                Text(AiClient.configState.collectAsState().value.second.ifEmpty { stringResource(R.string.no_model_selected) }, style = PufyType.caption, color = c.secondaryText, maxLines = 1)
             }
             Icon(Icons.Outlined.Settings, stringResource(R.string.settings_title), Modifier.size(19.dp), tint = c.secondaryText)
         }

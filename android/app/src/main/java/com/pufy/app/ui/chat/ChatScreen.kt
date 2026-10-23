@@ -446,7 +446,8 @@ private fun Composer(state: ComposerState, messages: List<com.pufy.app.data.Mess
             }
         }
 
-        if (!com.pufy.app.ai.AiClient.isConfigured) {
+        val aiConfigured = com.pufy.app.ai.AiClient.configState.collectAsState().value.first
+        if (!aiConfigured) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()

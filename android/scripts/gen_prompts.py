@@ -5,7 +5,7 @@ import re
 from pathlib import Path
 
 root = Path(__file__).resolve().parents[2]
-src = lambda name: (root / 'ios' / name).read_text(encoding='utf-8')
+src = lambda name: (root / name).read_text(encoding='utf-8')
 
 
 def swift_literal(text, start):
@@ -71,7 +71,7 @@ qr = src('QueryRouter.swift')
 cards = src('InteractiveCards.swift')
 
 # 1) Ana sohbet yönergesi
-a = cvm.index('        return """\n        Sen Pufy\'sin')
+a = cvm.index('        return """\n        \\(Self.answerLanguageRule)\n        Sen Pufy\'sin')
 main = swift_literal(cvm, a + len('        return '))
 main_map = {
     'turkishNow': 'p.turkishNow',
@@ -88,8 +88,7 @@ main_map = {
     'isSpaceChat ? "\\nZAMANLANMIŞ GÖREV SOHBETİ: Bu, zamanlanmış bir AI görevidir. Görevi verilen araştırma sonuçlarıyla eksiksiz yerine getir; [CHOICES] kullanma." : ""':
         'if (p.isSpaceChat) "\\nZAMANLANMIŞ GÖREV SOHBETİ: Bu, zamanlanmış bir AI görevidir. Görevi verilen araştırma sonuçlarıyla eksiksiz yerine getir; [CHOICES] kullanma." else ""',
     'deviceContextLine': 'p.deviceContextLine',
-    "AppLanguage.isEnglish ? \"\\nAnswer language: reply in the user's language; if unclear, reply in English.\" : \"\\nCevap dili: Kullanıcının yazdığı dil (genelde Türkçe).\"":
-        '"\\nCevap dili: Kullanıcının yazdığı dil (genelde Türkçe)."',
+    'Self.answerLanguageRule': 'if (com.pufy.app.core.AppLocales.isEnglish()) "\\nANSWER LANGUAGE: Always reply in the language of the user\'s latest message (English message → English, Turkish → Turkish), even though these instructions are written in Turkish. If unclear, reply in English." else "\\nCEVAP DİLİ: Her zaman kullanıcının son mesajının dilinde cevap ver (İngilizce yazarsa İngilizce, Türkçe yazarsa Türkçe). Belirsizse Türkçe."',
 }
 main_kt = to_kotlin(main, main_map, 'ana yönerge')
 

@@ -13,7 +13,8 @@ object Prompts {
         val deviceContextLine: String = "Bu cihaz: Android.",
     )
 
-    fun agent(p: Params, timeZoneGuide: () -> String): String = """Sen Pufy'sin: kullanıcının kişisel yapay zeka asistanı. Zekisin, dürüstsün; sıcak ama lafı uzatmayan, doğal bir Türkçeyle konuşursun (kullanıcı başka bir dilde yazarsa o dilde cevap ver).
+    fun agent(p: Params, timeZoneGuide: () -> String): String = """${if (com.pufy.app.core.AppLocales.isEnglish()) "\nANSWER LANGUAGE: Always reply in the language of the user's latest message (English message → English, Turkish → Turkish), even though these instructions are written in Turkish. If unclear, reply in English." else "\nCEVAP DİLİ: Her zaman kullanıcının son mesajının dilinde cevap ver (İngilizce yazarsa İngilizce, Türkçe yazarsa Türkçe). Belirsizse Türkçe."}
+Sen Pufy'sin: kullanıcının kişisel yapay zeka asistanı. Zekisin, dürüstsün; sıcak ama lafı uzatmayan, doğal bir Türkçeyle konuşursun (kullanıcı başka bir dilde yazarsa o dilde cevap ver).
 
 # 1. ZAMAN VE BİLGİNİN SINIRI
 - Şu an: ${p.turkishNow} — Türkiye saati (TSİ, UTC+3).
@@ -208,7 +209,7 @@ ${if (p.reminderMode) "\nÖNEMLİ: Kullanıcı şu an özellikle hatırlatıcı 
 ${if (p.isSpaceChat) "\nZAMANLANMIŞ GÖREV SOHBETİ: Bu, zamanlanmış bir AI görevidir. Görevi verilen araştırma sonuçlarıyla eksiksiz yerine getir; [CHOICES] kullanma." else ""}
 
 [DOSYA: …] blokları kullanıcının eklediği dosyalardır. Cevabını dosyanın içeriğine dayandır; dosyada olmayan bilgiyi dosyadaymış gibi söyleme. Metin kısaltıldıysa bunu belirt.
-${"\nCevap dili: Kullanıcının yazdığı dil (genelde Türkçe)."}"""
+${if (com.pufy.app.core.AppLocales.isEnglish()) "\nANSWER LANGUAGE: Always reply in the language of the user's latest message (English message → English, Turkish → Turkish), even though these instructions are written in Turkish. If unclear, reply in English." else "\nCEVAP DİLİ: Her zaman kullanıcının son mesajının dilinde cevap ver (İngilizce yazarsa İngilizce, Türkçe yazarsa Türkçe). Belirsizse Türkçe."}"""
 
     val TASK_RULES_FULL = """   - Tekrarlayan: "repeat":"daily|weekly|monthly|yearly" ya da dakikalık için "every_minutes":5 (en az 2) ve bitiş "until":"YYYY-MM-DDTHH:mm:ss". Bitiş söylenmediyse makul bir bitiş seç (sık tekrarlarda ~1-2 saat) ve bunu söyle.
    - Zamanı BELLİ görevde ("5 dk sonra", "yarın 9'da", "her 5 dakikada"): şimdi arama yapma, şimdiki değeri verme; hemen kur ve tek cümleyle onayla ("5 dakika sonra güncel BTC fiyatını bildirimle göndereceğim.").

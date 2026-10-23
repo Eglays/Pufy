@@ -181,13 +181,13 @@ final class DictationManager: NSObject, ObservableObject {
         }
     }
 
-    /// Son çare: cihazdaki konuşma tanıma (Türkçe)
+    /// Son çare: cihazdaki konuşma tanıma (uygulama dilinde)
     private static func onDeviceTranscription(url: URL) async throws -> String {
         let status = await withCheckedContinuation { continuation in
             SFSpeechRecognizer.requestAuthorization { continuation.resume(returning: $0) }
         }
         guard status == .authorized,
-              let recognizer = SFSpeechRecognizer(locale: Locale(identifier: "tr-TR")), recognizer.isAvailable else { return "" }
+              let recognizer = SFSpeechRecognizer(locale: Locale(identifier: AppLanguage.isEnglish ? "en-US" : "tr-TR")), recognizer.isAvailable else { return "" }
         let request = SFSpeechURLRecognitionRequest(url: url)
         request.shouldReportPartialResults = false
         request.addsPunctuation = true

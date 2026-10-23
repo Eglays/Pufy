@@ -332,6 +332,7 @@
     <string name="slides_count">%1$d slayt</string>
     <string name="dictation_mic_failed">Mikrofon açılamadı.</string>
     <string name="dictation_transcribe_failed">Yazıya dökülemedi.</string>
+    <string name="dictation_unavailable">Bu cihazda konuşma tanıma yok. Google uygulamasını yükleyip tekrar dene.</string>
     <string name="dictation_transcribing">Yazıya dökülüyor…</string>
     <string name="remove_action">Kaldır</string>
     <string name="sent_image">Gönderilen görsel</string>

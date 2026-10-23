@@ -423,6 +423,39 @@ private fun ConnectAIScreen(onContinue: () -> Unit, onSkip: () -> Unit) {
         return currentProvider.modelHint
     }
 
+    /**
+     * Akıllı bağlantı denemesi: model boşsa ya da sağlayıcıda yoksa canlı listeden seçer,
+     * özel sunucuda format yanlış seçildiyse diğerini de dener. Çalışan ayarı forma işler.
+     */
+    suspend fun autoConnect(): Result<String> {
+        val key = apiKey.trim()
+        val formats = if (selectedProviderId == "custom") listOf(customFormat, if (customFormat == ApiFormat.GEMINI) ApiFormat.OPENAI else ApiFormat.GEMINI)
+            else listOf(effectiveFormat())
+        var last: Result<String> = Result.failure(com.pufy.app.ai.AiException(0, "Bağlantı kurulamadı."))
+        for (fmt in formats) {
+            suspend fun pick(): String? = runCatching { AiClient.fetchModels(effectiveEndpoint(), fmt, key) }.getOrNull()
+                ?.let { AiClient.pickDefaultModel(selectedProviderId, it, currentProvider.modelHint) }
+            var mdl = effectiveModel().ifEmpty { pick() ?: "" }
+            if (mdl.isEmpty()) continue
+            var res = AiClient.testConnectionDetailed(effectiveEndpoint(), fmt, key, mdl)
+            val code = (res.exceptionOrNull() as? com.pufy.app.ai.AiException)?.code
+            if (res.isFailure && (code == 404 || code == 400)) {
+                // Model adı eskimiş ya da yanlış olabilir: sağlayıcının listesinden uygun olanı seç, yeniden dene
+                val picked = pick()
+                if (picked != null && picked != mdl) { mdl = picked; res = AiClient.testConnectionDetailed(effectiveEndpoint(), fmt, key, mdl) }
+            }
+            if (res.isSuccess) {
+                if (selectedProviderId == "custom") customFormat = fmt
+                model = mdl
+                return res
+            }
+            last = res
+            val c = (res.exceptionOrNull() as? com.pufy.app.ai.AiException)?.code
+            if (c == 401 || c == 403) return res   // anahtar hatası: diğer biçimi denemek anlamsız
+        }
+        return last
+    }
+
     fun saveConfig() {
         val cleanKey = apiKey.trim().removePrefix("Bearer ").trim()
         val ep = effectiveEndpoint()
@@ -430,7 +463,7 @@ private fun ConnectAIScreen(onContinue: () -> Unit, onSkip: () -> Unit) {
         val mdl = effectiveModel()
         val isGemini = fmt == ApiFormat.GEMINI
 
-        if (cleanKey.isNotEmpty() || currentProvider.isLocal) {
+        if (cleanKey.isNotEmpty() || currentProvider.isLocal || selectedProviderId == "custom") {
             AiClient.apiKey = cleanKey
             AiClient.endpoint = ep
             AiClient.apiFormat = fmt
@@ -438,7 +471,8 @@ private fun ConnectAIScreen(onContinue: () -> Unit, onSkip: () -> Unit) {
             AiClient.heavyModelName = mdl
             AiClient.aiProvider = selectedProviderId
             AiClient.googleSearchEnabled = isGemini
-            AiClient.imageModelName = if (isGemini) "gemini-3.1-flash-image" else ""
+            AiClient.imageModelName = ""
+            AiClient.imageProvider = "off"
         }
         onContinue()
     }
@@ -528,7 +562,7 @@ private fun ConnectAIScreen(onContinue: () -> Unit, onSkip: () -> Unit) {
                             cursorBrush = SolidColor(c.text),
                             modifier = Modifier.fillMaxWidth(),
                             decorationBox = { inner ->
-                                if (customEndpoint.isEmpty()) Text(currentProvider.endpoint.ifEmpty { "http://192.168.1.10:11434/v1" }, style = PufyType.body, color = c.tertiaryText)
+                                if (customEndpoint.isEmpty()) Text(currentProvider.endpoint.ifEmpty { "https://your-server.com" }, style = PufyType.body, color = c.tertiaryText)
                                 inner()
                             }
                         )
@@ -564,7 +598,7 @@ private fun ConnectAIScreen(onContinue: () -> Unit, onSkip: () -> Unit) {
                             Box(Modifier.weight(1f).clip(RoundedCornerShape(12.dp))
                                 .background(if (customFormat == ApiFormat.OPENAI) c.text else (if (c.isDark) c.secondaryBackground else Color.White))
                                 .clickable { customFormat = ApiFormat.OPENAI }.padding(vertical = 10.dp), contentAlignment = Alignment.Center) {
-                                Text("OpenAI uyumlu", style = PufyType.footnote.copy(fontWeight = FontWeight.SemiBold), color = if (customFormat == ApiFormat.OPENAI) c.background else c.text)
+                                Text(if (com.pufy.app.core.AppLocales.isEnglish()) "OpenAI compatible" else "OpenAI uyumlu", style = PufyType.footnote.copy(fontWeight = FontWeight.SemiBold), color = if (customFormat == ApiFormat.OPENAI) c.background else c.text)
                             }
                         }
                     }
@@ -682,14 +716,9 @@ private fun ConnectAIScreen(onContinue: () -> Unit, onSkip: () -> Unit) {
                     testSuccess = false
                     testErrorMessage = null
                     scope.launch {
-                        val res = AiClient.testConnectionDetailed(
-                            endpoint = effectiveEndpoint(),
-                            format = effectiveFormat(),
-                            apiKey = apiKey.trim(),
-                            model = effectiveModel()
-                        )
+                        val result = autoConnect()
                         isTesting = false
-                        res.onSuccess {
+                        result.onSuccess {
                             testSuccess = true
                             Haptics.success(view)
                         }.onFailure {

@@ -22,8 +22,8 @@ android {
         applicationId = "com.pufy.app"
         minSdk = 26
         targetSdk = 36
-        versionCode = 112
-        versionName = "2.9.3"
+        versionCode = 113
+        versionName = "2.9.4"
     }
 
     signingConfigs {
